@@ -1,0 +1,185 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+  <title>{{ exam.title }} Exam Questions</title>
+  <style>
+    /* Reset default styles */
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+    }
+
+    /* Sticky Navbar */
+    .navbar {
+      width: 100%;
+      padding: 20px;
+      background-color: #f0f0f0;
+      /* Light gray background */
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      justify-content: space-between;
+      z-index: 100;
+      /* Ensure navbar stays on top */
+    }
+
+    .container {
+      padding-top: 200px;
+      margin-top: auto;
+    }
+
+    /* Live Video Box */
+    .live-video {
+      position: absolute;
+      /* top: 20px; */
+      right: 20px;
+      width: 150px;
+      height: 120px;
+      border: 1px solid #ccc;
+    }
+
+    #video {
+      width: 150px;
+      height: 120px;
+
+    }
+
+
+    /* Question Container */
+    .question-container {
+      margin-top: 80px;
+      /* Adjust based on navbar height (if present) */
+      padding: 20px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      width: 60%;
+      /* Adjust width as needed */
+      margin: 0 auto;
+      /* Center the container horizontally */
+    }
+
+    .question-container h1 {
+      margin-bottom: 15px;
+    }
+
+    .question-text {
+      margin-bottom: 20px;
+    }
+
+    /* Options */
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+    }
+
+    .option input[type="radio"] {
+      margin-right: 10px;
+    }
+
+    /* Submit Button */
+    .submit-btn {
+      background-color: #007bff;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+  <nav class="navbar">
+    <h1>Monitored Exam</h1>
+  </nav>
+  <div class="container">
+
+    <div class="live-video">
+      <video id="video" autoplay>
+        Your browser does not support the video tag.
+      </video>
+    </div>
+
+    <div class="question-container">
+      <h1>{{ exam.title }} - Question </h1>
+      <p class="question-text">{{ question.question_text }}</p>
+      <form method="POST" action="{% url 'exams:exam_question' exam_id=exam.id %}">
+        {% csrf_token %}
+        <input type="hidden" name="question_id" value="{{ question.id }}">
+        <div class="options">
+          {% for option in question.options.all %}
+          <div class="option">
+            <input type="radio" id="option{{ option.id }}" name="answer" value="{{ option.id }}">
+            <label for="option{{ option.id }}">{{ option.text }}</label>
+          </div>
+          {% endfor %}
+        </div>
+        <button type="submit" class="submit-btn">Next</button>
+      </form>
+    </div>
+  </div>
+  <script>
+    const video = document.getElementById('video');
+    const canvas = document.createElement('canvas');
+    const context = canvas.getContext('2d');
+
+    video.addEventListener('loadedmetadata', () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+    });
+
+    // Access the webcam stream
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(mediaStream => {
+        video.srcObject = mediaStream;
+      })
+      .catch(error => {
+        console.error('Error accessing camera:', error);
+      });
+
+
+    const captureAndUploadImage = () => {
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob(blob => {
+        const formData = new FormData();
+        formData.append('live_pic', blob, 'image.jpeg');
+
+        fetch("{% url 'exams:exam_verification_api' exam_id=exam.id %}", {
+          method: 'POST',
+          body: formData
+        })
+          .then(response => {
+            if (response.ok) {
+              console.log('Image uploaded successfully');
+            } else {
+              console.error('Failed to upload image');
+            }
+          })
+          .catch(error => {
+            console.error('Error uploading image:', error);
+          });
+      }, 'image/jpeg');
+    };
+
+    video.addEventListener('loadedmetadata', captureAndUploadImage);
+    
+  </script>
+
+</body>
+
+</html>

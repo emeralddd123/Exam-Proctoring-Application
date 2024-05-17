@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Login Page</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        /* Reset default styles */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+
+        /* Center the content of the page (excluding navbar) */
+        .content {
+            display: flex;
+            min-height: calc(100vh - 50px);
+            /* Subtract navbar height */
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Style the background */
+        body {
+            background-color: #fff;
+            /* Big white background */
+        }
+
+        /* Style the navbar */
+        .navbar {
+            width: 100%;
+            padding: 20px;
+            background-color: #007bff;
+            /* Blue navbar color */
+            color: #fff;
+            /* White text color */
+            position: fixed;
+            /* Make navbar stick to top */
+            top: 0;
+            /* Position at the top of the page */
+            left: 0;
+            /* Position at the left of the page */
+            z-index: 100;
+            /* Ensure navbar stays on top of content */
+            display: flex;
+            justify-content: space-between;
+            /* Space items evenly */
+        }
+
+        /* Login form styles */
+        .login-form {
+            background-color: #f0f0f0;
+            /* Light gray background */
+            padding: 30px;
+            border-radius: 5px;
+            /* Rounded corners */
+            text-align: center;
+            /* Center form content */
+        }
+
+        .login-form input {
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            width: 100%;
+        }
+
+        .login-form button {
+            background-color: #007bff;
+            /* Blue button color */
+            color: #fff;
+            /* White text color */
+            padding: 10px 20px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+
+        /* Responsiveness - adjust styles for smaller screens */
+        @media (max-width: 768px) {
+            .login-form {
+                width: 80%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <nav class="navbar">
+            Exam Portal
+        </nav>
+        
+        {% if messages %}
+        {% for message in messages %}
+        <p>{{ message }}</p>
+        {% endfor %}
+        {% endif %}
+
+        <div class="content">
+            <div class="login-form">
+                <h1>Login</h1>
+                <form action="{% url 'users:login' %}" method="post">
+                    {% csrf_token %}
+                    <input type="text" id="email" name="email" placeholder="email" required>
+                    <input type="password" name="password" name="password" placeholder="Password" required>
+                    <button type="submit">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+</html>

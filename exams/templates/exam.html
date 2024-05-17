@@ -1,0 +1,187 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        #app {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        #startExam,
+        #verifyExam,
+        #answerQuestion {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        button {
+            margin-top: 10px;
+        }
+
+        #canvas {
+            max-width: 30%;
+            height: auto;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <p>hello Mustapha</p>
+    <div id="videoContainer">
+        <video id="video" autoplay></video>
+    </div>
+    <div id="app">
+        <div id="startExam">
+            <h1>Start Exam</h1>
+            <button id="startExamButton">Start Exam</button>
+            <div id="examQuestions"></div>
+        </div>
+        <div id="verifyExam">
+            <h1>Verify Exam</h1>
+            <input type="file" id="imageInput">
+            <button id="verifyButton">Verify</button>
+        </div>
+        <div id="answerQuestion">
+            <h1>Answer Question</h1>
+            <div id="questionText">Question: What is the capital of France?</div>
+            <div id="options">
+                <input type="radio" name="option" value="paris"> Paris<br>
+                <input type="radio" name="option" value="london"> London<br>
+                <input type="radio" name="option" value="berlin"> Berlin<br>
+            </div>
+            <button id="submitAnswer">Submit Answer</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const startExamButton = document.getElementById('startExamButton');
+            const verifyButton = document.getElementById('verifyButton');
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const examQuestions = document.getElementById('examQuestions');
+            const questionText = document.getElementById('questionText');
+            const options = document.getElementById('options');
+            const submitAnswer = document.getElementById('submitAnswer');
+
+            let isCapturing = false;
+
+            // Function to start capturing video frames
+            const startCapture = () => {
+                isCapturing = true;
+                const constraints = {
+                    video: true
+                };
+
+                navigator.mediaDevices.getUserMedia(constraints)
+                    .then(mediaStream => {
+                        video.srcObject = mediaStream;
+                    })
+                    .catch(error => {
+                        console.error('Error accessing camera:', error);
+                    });
+            };
+
+            // Function to stop capturing video frames
+            const stopCapture = () => {
+                isCapturing = false;
+                const mediaStream = video.srcObject;
+                const tracks = mediaStream.getTracks();
+
+                tracks.forEach(track => {
+                    track.stop();
+                });
+
+                video.srcObject = null;
+            };
+
+            // Function to capture and send video frame
+            const captureAndSendFrame = () => {
+                if (!isCapturing) return;
+
+                const context = canvas.getContext('2d');
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(blob => {
+                    // Create a FormData object
+                    const formData = new FormData();
+                    // Append the blob to the FormData object with a key name
+                    formData.append('user_live_pic', blob, 'image.jpg');
+
+                    // Send captured image data to backend
+                    fetch('/exam_verification_api/exam_id', {
+                        method: 'POST',
+                        body: formData
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                console.log('Face verification successful');
+                            } else {
+                                console.error('Face verification failed:', data.message);
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error verifying face:', error);
+                        });
+                }, 'image/jpeg');
+
+                // Capture and send frame every second
+                setTimeout(captureAndSendFrame, 1000);
+            };
+
+            // Function to fetch exam questions and options
+            const fetchExamQuestions = () => {
+                fetch('/start_exam_api/exam_id', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}'
+                    },
+                    body: JSON.stringify({})  // You may need to pass exam ID here
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Display exam questions
+                            examQuestions.innerHTML = '';
+                            data.data.questions.forEach(question => {
+                                const questionDiv = document.createElement('div');
+                                questionDiv.textContent = question.question_text;
+                                examQuestions.appendChild(questionDiv);
+                            });
+                        } else {
+                            console.error('Error fetching exam questions:', data.message);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error fetching exam questions:', error);
+                    });
+            };
+
+            // Function to start exam
+            startExamButton.addEventListener('click', () => {
+                fetchExamQuestions();
+            });
+
+            // Function to start capturing video frames when verify button is clicked
+            verifyButton.addEventListener('click', () => {
+                startCapture();
+                captureAndSendFrame();
+            });
+        });
+
+
+    </script>
+</body>
+
+</html>

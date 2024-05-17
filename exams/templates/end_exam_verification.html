@@ -1,0 +1,80 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End Exam Verification</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+    <div class="container">
+        <h1>End Exam Verification</h1>
+        <!-- Display error messages if any -->
+        {% if messages %}
+        <ul class="messages">
+            {% for message in messages %}
+            <li class="{{ message.tags }}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        <p>Please complete the end exam face verification to finish the exam.</p>
+        <video id="video" width="320" height="240"autoplay></video>
+        <button id="captureButton">Capture Image</button>
+        <canvas id="canvas" width="50%" height="auto" style="display:none;"></canvas>
+
+        <script>
+            const captureButton = document.getElementById('captureButton');
+            const video = document.getElementById('video');
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+
+            // Access the device camera
+            navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                    video.srcObject = stream;
+                })
+                .catch(function (error) {
+                    console.log('Error accessing camera:', error);
+                });
+
+            // Capture image from video stream
+            captureButton.addEventListener('click', function () {
+                context.drawImage(video, 0, 0, canvas.width, canvas.height);
+                canvas.toBlob(function (blob) {
+                    // Create a FormData object
+                    var formData = new FormData();
+                    // Append the blob to the FormData object with a key name
+                    formData.append('image', blob, 'image.jpg');
+
+                    // Send captured image data to backend
+                    fetch('/exams/end_exam/verify/{{exam.id}}', {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: formData
+                    }).then(response => {
+                        if (response.redirected) {
+                            window.location.href = response.url;
+                        } else {
+                            return //nothing
+                        }
+                    })
+                        .then(data => {
+                            //do nothing
+                        })
+                        .catch(error => {
+                            console.error('Error capturing image:', error);
+                        });
+                }, 'image/jpeg');
+            });
+        </script>
+    </div>
+</body>
+
+</html>

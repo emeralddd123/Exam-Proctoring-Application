@@ -1,0 +1,69 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>End Quiz Result</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        /* Reset default styles */
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            font-family: sans-serif;
+        }
+
+        /* Basic Navbar Styling */
+        .navbar {
+            width: 100%;
+            padding: 15px 20px;
+            background-color: #f0f0f0;
+            /* Light gray background */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            /* Vertically center navbar content */
+        }
+
+        .navbar h1 {
+            margin: 0;
+            /* Remove default top margin */
+        }
+
+        /* Logout Button Styling */
+        .logout-btn {
+            background-color: #dc3545;
+            /* Reddish color */
+            color: #fff;
+            padding: 5px 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Container Centering */
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="navbar">
+        <h1>Exam Portal</h1>
+        <a href="{% url 'users:logout' %}" class="logout-btn">Logout</a>
+    </nav>
+
+    <div class="container">
+        <h1>End of Exam</h1>
+        <p>Congratulations! You have successfully completed {{ exam.title }} exam.</p>
+    </div>
+
+</body>
+
+</html>
