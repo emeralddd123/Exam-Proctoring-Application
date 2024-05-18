@@ -10,7 +10,7 @@ The Online Exam Anti Cheating system is designed to ensure the integrity and sec
 2. **Login**: Registered users can access the system using face recognition. Access to the exam interface is granted only after successful face recognition.
 3. **Exam Verification**:
    - **Start**: Face recognition is required at the beginning of the exam to verify the identity of the user.
-   - **Middle**: During the exam, users may be prompted for face recognition at random intervals to ensure the same person is taking the exam. If the face recognition fails, the user can continue with the exam, but the system will record the discrepancy.
+   - **Middle**: Users' face will be captured and passed to the recognitionodel throughout the exam. If the face recognition fails, the user can continue with the exam, but the system will record the discrepancy.
    - **End**: Face recognition is required at the end of the exam to verify the identity of the user and confirm completion. Any discrepancies in face recognition will be recorded for administrator review.
 4. **Admin Panel**: Administrators have access to exam data and can review face recognition records to identify any discrepancies.
 
